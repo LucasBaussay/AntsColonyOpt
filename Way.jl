@@ -15,3 +15,7 @@ end
 function set(way::Way, ::ProbaChange, probabilitie::Float64)
     way.probabilitie = probabilitie
 end
+
+function reset!(way::Way, ::ProbaChange)
+    way.probabilitie = undef
+end

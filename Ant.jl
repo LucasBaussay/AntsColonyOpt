@@ -20,9 +20,21 @@ function init!(cities::Vector{City}, ant::Ant)
 	return ant
 end
 
+function chooseCity!(map::Map, ant::Ant)
+	city = ant.way[length(ant.way)]
+	dictProba = Dict{City, Float64}()
+	for potentialCity in map.cities
+		way = map.ways[city][potentialCity]
+
+end
+
 function round!(map::Map, ant::Ant)
 	empty!(ant)
 	init!(map.cities, ant)
+
+	nbVille = length(map.cities)
+	for ind = 1:nbVille-1
+		chooseCity!(map, ant)
 
 	while
 end
