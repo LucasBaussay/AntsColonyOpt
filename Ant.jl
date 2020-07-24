@@ -83,8 +83,8 @@ function chooseCity(map::Map, ant::Ant)
 
 end
 
-# Error init !
-#TODO : Find how tu use the macro correctly
+# TODO : Error init !!!!
+# TODO : Find how tu use the macro correctly
 
 function round!(ant::Ant, map::Map)
 
