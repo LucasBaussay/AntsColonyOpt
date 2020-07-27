@@ -6,12 +6,14 @@ mutable struct Map
 
     ways::Dict{City, Dict{City, Way}}
 
+    solution::Solution
+
 end
 
 struct RandomCreation end
 
 function Map()
-    return Map(Vector{City}(), Dict{City, Dict{City, Way}}())
+    return Map(Vector{City}(), Dict{City, Dict{City, Way}}(), Solution())
 end
 
 #Is it better for Space complexity ? Time Complexity ? to not recrate space memory every time
@@ -28,7 +30,7 @@ end
 #   Then if there isn't that : the distance are calculate by x^2 + y^2
 #   else : the fixed one are used
 
-function city!(map::Map, x::Float64, y::Float64, pheroInit::Float64=1.)
+function city!(map::Map, x::Float64, y::Float64, pheroInit::Float64=2.)
 
     nbrVille::Int64 = length(map.cities)
     city::City = City(x, y, nbrVille+=1)
@@ -52,4 +54,13 @@ function Map(nbrVille::Int64, ::RandomCreation, borneX::Int64 = 50, borneY::Int6
         city!(m, cityX, cityY)
     end
     return m
+end
+
+function updatePhero!(map::Map, p::Float64)
+    for dictWays in collect(values(map.ways))
+        for way in collect(values(dictWays))
+            way.phero *= p
+        end
+    end
+    return map
 end

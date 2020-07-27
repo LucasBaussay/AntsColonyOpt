@@ -11,7 +11,11 @@ end
 function Ant(cities::Vector{City})
 
 	ant = Ant(Vector{City}(), 0., cities)
-	push!(ant.way, rand(cities))
+
+	city = rand(cities)
+
+	push!(ant.way, city)
+	filter!(notCity -> notCity != city, ant.notWay)
 
 	return ant
 
@@ -83,26 +87,23 @@ function chooseCity(map::Map, ant::Ant)
 
 end
 
-# TODO : Error init !!!!
 # TODO : Find how tu use the macro correctly
 
 function round!(ant::Ant, map::Map)
 
 	empty!(ant, map.cities)
-	init!()
 	nbVille = length(map.cities)
 	for ind = 1:nbVille-1
 		nextCity, nextWay = chooseCity(map, ant)
 		addCity!(ant, nextCity, nextWay)
 	end
-
+	firstCity = ant.way[1]
+	addCity!(ant, firstCity, map.ways[nextCity][firstCity])
 	return ant
 
 end
 
-
-
-function wayBack!(map::Map, ant::Ant, Q::Number = 100.)
+function wayBack!(map::Map, ant::Ant, Q::Real)
 
 	for idTown = 1:length(ant.way)-1
 		city = ant.way[idTown]
@@ -119,4 +120,14 @@ function wayBack!(map::Map, ant::Ant, Q::Number = 100.)
 
 	way.pheromone += Q/ant.lengthMade
 
+end
+
+function searchBestAnt(antList::Vector{Ant})
+	bestAnt::Ant = antList[1]
+	for ant in antList
+		if ant.lengthMade < bestAnt.lengthMade
+			bestAnt = ant
+		end
+	end
+	return bestAnt
 end
