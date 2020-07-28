@@ -10,7 +10,7 @@ end
 
 function Ant(cities::Vector{City})
 
-	ant = Ant(Vector{City}(), 0., cities)
+	ant = Ant(Vector{City}(), 0., cities[:])
 
 	city = rand(cities)
 
@@ -21,16 +21,15 @@ function Ant(cities::Vector{City})
 
 end
 
+
+# Find how to empty ant.way
 function empty!(ant::Ant, cities::Vector{City})
 
-	@assert length(ant.way)>1 "The ant is already empty"
-
 	firstCity::City = ant.way[1]
-	empty!(ant.way)
+	ant.way = Vector{City}()
 	push!(ant.way, firstCity)
 
 	ant.lengthMade = 0.
-	empty!(ant.way)
 	ant.notWay = filter(city -> city != firstCity, cities)
 
 	return ant
@@ -66,7 +65,8 @@ function chooseCity(map::Map, ant::Ant)
 	city::City = ant.way[length(ant.way)]
 	# dictProba::Dict{City, Float64} = Dict{City, Float64}()
 
-	total::Float64 = calcTotal(ways::Dict{City, Way}) #Ther is an error here
+	#TODO : Which ways ?
+	total::Float64 = calcTotal(ways::Dict{City, Way}) #Ther is an error here # MDR
 
 	maxProba::Float64 = 0.
 	nextCity = nothing
@@ -90,9 +90,9 @@ end
 # TODO : Find how tu use the macro correctly
 
 function round!(ant::Ant, map::Map)
-
 	empty!(ant, map.cities)
 	nbVille = length(map.cities)
+	print(nbVille, "\n")
 	for ind = 1:nbVille-1
 		nextCity, nextWay = chooseCity(map, ant)
 		addCity!(ant, nextCity, nextWay)
@@ -109,14 +109,22 @@ function wayBack!(map::Map, ant::Ant, Q::Real)
 		city = ant.way[idTown]
 		nextCity = ant.way[idTown+1]
 
-		way = map.ways[city.index > nextCity.index ? city : nextCity]
+		if firstCity.index > lastCity.index
+			way = map.ways[firstCity][lastCity]
+		else
+			way = map.ways[lastCity][firstCity]
+		end
 
 		way.pheromone += Q/ant.lengthMade
 	end
 	firstCity = ant.way[1]
 	lastCity = ant.way[length(ant.way)]
 
-	way = map.ways[firstCity.index > lastCity.index ? firstCity : lastCity]
+	if firstCity.index > lastCity.index
+		way = map.ways[firstCity][lastCity]
+	else
+		way = map.ways[lastCity][firstCity]
+	end
 
 	way.pheromone += Q/ant.lengthMade
 

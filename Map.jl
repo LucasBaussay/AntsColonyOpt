@@ -36,7 +36,6 @@ function city!(map::Map, x::Float64, y::Float64, pheroInit::Float64=2.)
     city::City = City(x, y, nbrVille+=1)
 
     push!(map.cities, city)
-
     ways::Dict{City, Way} = Dict(map.cities[ind] => Way(distance(city, map.cities[ind]), pheroInit) for ind = 1:nbrVille)
 
     push!(map.ways, city => ways)
@@ -59,7 +58,7 @@ end
 function updatePhero!(map::Map, p::Float64)
     for dictWays in collect(values(map.ways))
         for way in collect(values(dictWays))
-            way.phero *= p
+            way.pheromone *= p
         end
     end
     return map

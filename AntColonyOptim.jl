@@ -27,7 +27,7 @@ function stopCondition!(map::Map, antList::Vector{Ant}, ind::Int64, NCmax::Int64
     if ind > NCmax
         map.solution.state = NCEnding()
         return true
-    else if ind == 0
+    elseif ind == 0
         return false
     else
         if reduce( & , [ant.distance ≈ antList[1].distance for ant in antList])
@@ -56,7 +56,6 @@ function _optimize!(map::Map, m::Int64, p::Float64, α::Real, β::Real, Q::Real,
         end
         updatePhero!(map, p)
         for ant in antList
-            empty!(ant, map.cities)
             round!(ant, map)
         end
         ind += 1
@@ -74,5 +73,7 @@ function updateSolution!(map::Map, antList::Vector{Ant})
     map.solution.length = bestAnt.lengthMade
 
 end
+
+export optimize!
 
 end  # module
