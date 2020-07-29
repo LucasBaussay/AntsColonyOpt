@@ -47,8 +47,8 @@ end
 function calcTotal(ways::Dict{City, Way}, α::Real = 0.5, β::Real = 0.5)
 
 	total::Float64 = 0.
-	values = values(ways)
-	for way in values
+
+	for way in collect(values(ways))
 		total += way.pheromone^α * way.length^(-β)
 	end
 
@@ -65,15 +65,25 @@ function chooseCity(map::Map, ant::Ant)
 	city::City = ant.way[length(ant.way)]
 	# dictProba::Dict{City, Float64} = Dict{City, Float64}()
 
-	#TODO : Which ways ?
-	total::Float64 = calcTotal(ways::Dict{City, Way}) #Ther is an error here # MDR
+	ways::Dict{City, Way} = map.ways[city]
+	total::Float64 = calcTotal(ways)
 
 	maxProba::Float64 = 0.
-	nextCity = nothing
-	nextWay = nothing
+	nextCity = ant.notWay[1]
+
+	if city.index > nextCity.index
+		nextWay = map.ways[city][nextCity]
+	else
+		nextWay = map.ways[nextCity][city]
+	end
 
 	for potentialCity in ant.notWay
-		way::Way = map.ways[city][potentialCity]
+
+		if city.index > potentialCity.index
+			way = map.ways[city][potentialCity]
+		else
+			way = map.ways[potentialCity][city]
+		end
 
 		proba = calcProba(ant, way, total)
 		if maxProba < proba
@@ -83,7 +93,7 @@ function chooseCity(map::Map, ant::Ant)
 		end
 	end
 
-	return potentialCity, nextWay
+	return nextCity, nextWay
 
 end
 
@@ -92,13 +102,21 @@ end
 function round!(ant::Ant, map::Map)
 	empty!(ant, map.cities)
 	nbVille = length(map.cities)
-	print(nbVille, "\n")
 	for ind = 1:nbVille-1
 		nextCity, nextWay = chooseCity(map, ant)
 		addCity!(ant, nextCity, nextWay)
+
 	end
 	firstCity = ant.way[1]
-	addCity!(ant, firstCity, map.ways[nextCity][firstCity])
+	lastCity = ant.way[length(ant.way)]
+
+	if firstCity.index > lastCity.index
+		way = map.ways[firstCity][lastCity]
+	else
+		way = map.ways[lastCity][firstCity]
+	end
+
+	addCity!(ant, firstCity, way)
 	return ant
 
 end
@@ -120,7 +138,7 @@ function wayBack!(map::Map, ant::Ant, Q::Real)
 	firstCity = ant.way[1]
 	lastCity = ant.way[length(ant.way)]
 
-	if firstCity.index > lastCity.index
+	if firstCity.index < lastCity.index
 		way = map.ways[firstCity][lastCity]
 	else
 		way = map.ways[lastCity][firstCity]

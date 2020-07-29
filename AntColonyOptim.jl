@@ -30,7 +30,7 @@ function stopCondition!(map::Map, antList::Vector{Ant}, ind::Int64, NCmax::Int64
     elseif ind == 0
         return false
     else
-        if reduce( & , [ant.distance ≈ antList[1].distance for ant in antList])
+        if reduce( & , [ant.lengthMade ≈ antList[1].lengthMade for ant in antList])
             map.solution.state = AntEnding()
             return true
         else
@@ -51,8 +51,10 @@ function _optimize!(map::Map, m::Int64, p::Float64, α::Real, β::Real, Q::Real,
 
     while !stopCondition!(map, antList, ind, NCmax)
 
-        for ant in antList
-            wayBack!(map, ant, Q)
+        if ind != 0
+            for ant in antList
+                wayBack!(map, ant, Q)
+            end
         end
         updatePhero!(map, p)
         for ant in antList

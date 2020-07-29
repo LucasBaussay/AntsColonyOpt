@@ -35,9 +35,10 @@ function city!(map::Map, x::Float64, y::Float64, pheroInit::Float64=2.)
     nbrVille::Int64 = length(map.cities)
     city::City = City(x, y, nbrVille+=1)
 
-    push!(map.cities, city)
-    ways::Dict{City, Way} = Dict(map.cities[ind] => Way(distance(city, map.cities[ind]), pheroInit) for ind = 1:nbrVille)
+    ways::Dict{City, Way} = Dict(map.cities[ind] => Way(distance(city, map.cities[ind]), pheroInit) for ind = 1:nbrVille-1)
 
+
+    push!(map.cities, city)
     push!(map.ways, city => ways)
 
     return city
