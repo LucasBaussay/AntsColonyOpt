@@ -43,8 +43,8 @@ function stopCondition!(map::Map, antList::Vector{Ant}, ind::Int64, NCmax::Int64
 end
 
 
-function optimize!(map::Map, m::Union{Nothing, Int64} = nothing, p::Float64 = 0.5, α::Real = 1, β::Real = 1, Q::Real = 100, NCmax::Int64 = 5000)
-    createWays!(map)
+function optimize!(map::Map, m::Union{Nothing, Int64} = nothing, p::Float64 = 0.5, α::Real = 1, β::Real = 1, Q::Real = 100, NCmax::Int64 = 5000, pheroInit::Float64 = 1.)
+    createWays!(map, pheroInit)
     m == nothing ? _optimize!(map, length(map.cities), p, α, β, Q, NCmax) : _optimize!(map, m, p, α, β, Q, NCmax)
     return map
 end

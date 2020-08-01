@@ -4,7 +4,7 @@ mutable struct Map
 
     cities::Vector{City}
 
-    transition::Dict{City, Vector{CityIndex}}
+    transitions::Dict{City, Union{Vector{CityIndex}, Nothing}}
     ways::Dict{City, Dict{City, Way}}
 
     solution::Solution
@@ -45,7 +45,7 @@ function city!(map::Map, x::Float64, y::Float64, transition::Union{Vector{Int64}
 
 
     push!(map.cities, city)
-    push!(map.transitions, city => ways)
+    push!(map.transitions, city => transition)
 
     return city
 end
@@ -71,14 +71,17 @@ function updatePhero!(map::Map, p::Float64)
     return map
 end
 
-function createWays!(map::Map)
+function createWays!(map::Map, pheroInit::Float64)
     for city in map.cities
         nextCitiesIndex = map.transitions[city]
         if nextCitiesIndex != nothing
-            push!(map.ways, city => Dict(map.cities[cityIndex.value] => Way(distance(city, map.cities[cityIndex.value]), pheroInit) for cityIndex in nextCitiesIndex))
+            push!(map.ways, city => Dict(map.cities[cityIndex.value] => Way(distance(city, map.cities[cityIndex.value]), pheroInit) for cityIndex in (map(nextCityIndex-> nextCityIndex != city.index, nextCitiesIndex))))
         else
-            #Problem when city == nextCity
-            push!(map.ways, city => Dict(nextCity => Way(distance(city, nextCity), pheroInit) for nextCity in map.cities))
+            listCities = map.cities[:]
+            deleteat!(listCities, city.index.value)
+            ways = Dict(nextCity => Way(distance(city, nextCity), pheroInit) for nextCity in listCities)
+            push!(map.ways, city => ways)
+        end
     end
-    return map
+    # return map
 end
