@@ -4,6 +4,7 @@ mutable struct Map
 
     cities::Vector{City}
 
+    transition::Dict{City, Vector{CityIndex}}
     ways::Dict{City, Dict{City, Way}}
 
     solution::Solution
@@ -13,7 +14,7 @@ end
 struct RandomCreation end
 
 function Map()
-    return Map(Vector{City}(), Dict{City, Dict{City, Way}}(), Solution())
+    return Map(Vector{City}(), Dict{City, Vector{CityIndex}}(), Dict{City, Dict{City, Way}}(), Solution())
 end
 
 #Is it better for Space complexity ? Time Complexity ? to not recrate space memory every time
@@ -30,16 +31,21 @@ end
 #   Then if there isn't that : the distance are calculate by x^2 + y^2
 #   else : the fixed one are used
 
-function city!(map::Map, x::Float64, y::Float64, pheroInit::Float64=2.)
+function city!(map::Map, x::Float64, y::Float64, transition::Union{Vector{Int64}, Nothing} = nothing,  pheroInit::Float64=2.)
 
     nbrVille::Int64 = length(map.cities)
     city::City = City(x, y, nbrVille+=1)
 
-    ways::Dict{City, Way} = Dict(map.cities[ind] => Way(distance(city, map.cities[ind]), pheroInit) for ind = 1:nbrVille-1)
+    if transition != nothing
+        transition = [CityIndex(index) for index in transition]
+    end
+    #I'm there right now !
+
+    # ways::Dict{City, Way} = Dict(map.cities[ind] => Way(distance(city, map.cities[ind]), pheroInit) for ind = 1:nbrVille-1)
 
 
     push!(map.cities, city)
-    push!(map.ways, city => ways)
+    push!(map.transitions, city => ways)
 
     return city
 end
@@ -61,6 +67,18 @@ function updatePhero!(map::Map, p::Float64)
         for way in collect(values(dictWays))
             way.pheromone *= p
         end
+    end
+    return map
+end
+
+function createWays!(map::Map)
+    for city in map.cities
+        nextCitiesIndex = map.transitions[city]
+        if nextCitiesIndex != nothing
+            push!(map.ways, city => Dict(map.cities[cityIndex.value] => Way(distance(city, map.cities[cityIndex.value]), pheroInit) for cityIndex in nextCitiesIndex))
+        else
+            #Problem when city == nextCity
+            push!(map.ways, city => Dict(nextCity => Way(distance(city, nextCity), pheroInit) for nextCity in map.cities))
     end
     return map
 end

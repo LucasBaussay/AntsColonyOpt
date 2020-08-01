@@ -1,9 +1,17 @@
+struct CityIndex
+    value::Int64
+end
+
 mutable struct City
 
     x::Float64
     y::Float64
 
-    index::Int64
+    index::CityIndex
+end
+
+function City(x::Float64, y::Float64, index::Int64)
+    return City(x, y, CityIndex(index))
 end
 
 function distance(city_1::City, city_2::City)

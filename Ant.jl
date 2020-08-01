@@ -44,11 +44,16 @@ function addCity!(ant::Ant, city::City, way::Way)
 
 end
 
-function calcTotal(ways::Dict{City, Way}, α::Real = 0.5, β::Real = 0.5)
+function calcTotal(city::City, nextCities::Vector{City}, map::Map, α::Real, β::Real)
 
 	total::Float64 = 0.
 
-	for way in collect(values(ways))
+	for nextCity in nextCities
+		if city.index > nextCity.index
+			way = map.ways[city][nextCity]
+		else
+			way = map.ways[nextCity][city]
+		end
 		total += way.pheromone^α * way.length^(-β)
 	end
 
@@ -56,26 +61,35 @@ function calcTotal(ways::Dict{City, Way}, α::Real = 0.5, β::Real = 0.5)
 
 end
 
-function calcProba(ant::Ant, way::Way, total::Float64, α::Real = 0.5, β::Real = 0.5)
+function calcProba(ant::Ant, way::Way, total::Float64, α::Real, β::Real)
 	return way.pheromone^α * way.length^(-β) / total
 end
 
-function chooseCity(map::Map, ant::Ant)
+# TODO : Make that code clearer WITH SOME SUB FUNCTIONS
+# Find why the sum(listProba) is not equal to 1. but sometimes 0.04 and other time 4.98
+# This is a complete mess xD
+
+function chooseCity(map::Map, ant::Ant, α::Real, β::Real)
 
 	city::City = ant.way[length(ant.way)]
 	# dictProba::Dict{City, Float64} = Dict{City, Float64}()
 
 	ways::Dict{City, Way} = map.ways[city]
-	total::Float64 = calcTotal(ways)
+	total::Float64 = calcTotal(city, ant.notWay, map, α, β)
 
-	maxProba::Float64 = 0.
-	nextCity = ant.notWay[1]
+	# maxProba::Float64 = 0.
+	# nextCity = ant.notWay[1]
 
-	if city.index > nextCity.index
-		nextWay = map.ways[city][nextCity]
-	else
-		nextWay = map.ways[nextCity][city]
-	end
+	listProba = Vector{Float64}()
+	sumProba = 0.
+
+	indCity = 1
+
+	# if city.index > nextCity.index
+	# 	nextWay = map.ways[city][nextCity]
+	# else
+	# 	nextWay = map.ways[nextCity][city]
+	# end
 
 	for potentialCity in ant.notWay
 
@@ -85,12 +99,24 @@ function chooseCity(map::Map, ant::Ant)
 			way = map.ways[potentialCity][city]
 		end
 
-		proba = calcProba(ant, way, total)
-		if maxProba < proba
-			maxProba = proba
-			nextCity = potentialCity
-			nextWay = way
-		end
+		proba = calcProba(ant, way, total, α, β)
+
+		push!(listProba, proba)
+	end
+
+	rand = Random.rand()*sum(listProba)
+	# print(sum(listProba), "\n")
+
+	while rand > sumProba && indCity < length(ant.notWay)
+		sumProba += listProba[indCity]
+		indCity += 1
+	end
+	nextCity = ant.notWay[indCity]
+
+	if city.index > nextCity.index
+		nextWay = map.ways[city][nextCity]
+	else
+		nextWay = map.ways[nextCity][city]
 	end
 
 	return nextCity, nextWay
@@ -99,11 +125,11 @@ end
 
 # TODO : Find how tu use the macro correctly
 
-function round!(ant::Ant, map::Map)
+function round!(ant::Ant, map::Map, α::Real, β::Real)
 	empty!(ant, map.cities)
 	nbVille = length(map.cities)
 	for ind = 1:nbVille-1
-		nextCity, nextWay = chooseCity(map, ant)
+		nextCity, nextWay = chooseCity(map, ant, α, β)
 		addCity!(ant, nextCity, nextWay)
 
 	end
@@ -127,24 +153,24 @@ function wayBack!(map::Map, ant::Ant, Q::Real)
 		city = ant.way[idTown]
 		nextCity = ant.way[idTown+1]
 
-		if firstCity.index > lastCity.index
-			way = map.ways[firstCity][lastCity]
+		if city.index > nextCity.index
+			way = map.ways[city][nextCity]
 		else
-			way = map.ways[lastCity][firstCity]
+			way = map.ways[nextCity][city]
 		end
 
 		way.pheromone += Q/ant.lengthMade
 	end
-	firstCity = ant.way[1]
-	lastCity = ant.way[length(ant.way)]
-
-	if firstCity.index < lastCity.index
-		way = map.ways[firstCity][lastCity]
-	else
-		way = map.ways[lastCity][firstCity]
-	end
-
-	way.pheromone += Q/ant.lengthMade
+	# firstCity = ant.way[1]
+	# lastCity = ant.way[length(ant.way)]
+	#
+	# if firstCity.index < lastCity.index
+	# 	way = map.ways[firstCity][lastCity]
+	# else
+	# 	way = map.ways[lastCity][firstCity]
+	# end
+	#
+	# way.pheromone += Q/ant.lengthMade
 
 end
 
